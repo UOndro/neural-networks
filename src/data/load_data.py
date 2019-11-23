@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn import preprocessing
 from tensorflow import keras
+import os
 
 SEQUENCE_LENGTH = 51
 
@@ -23,7 +24,11 @@ def get_labeled_features(df):
     return X, np.array(y)
 
 
-df_ratings = pd.read_csv('../data/raw/ratings.dat', sep='::', encoding="ISO-8859-1",
+data_path = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    '../../data/raw/ratings.dat'
+)
+df_ratings = pd.read_csv(data_path, sep='::', encoding="ISO-8859-1",
                          names=['user_id', 'movie_id', 'rating', 'timestamp'])
 df_ratings['timestamp'] = pd.to_datetime(df_ratings['timestamp'], unit='s')
 df_ratings.sort_values(by=['timestamp'], inplace=True)

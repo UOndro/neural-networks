@@ -1,3 +1,4 @@
+import os
 from time import time
 
 
@@ -11,4 +12,8 @@ def train(model, train_X, train_y, validation_X, validation_y, class_weight, epo
         callbacks=callbacks,
         class_weight=class_weight
     )
-    model.save(f'../models/model_{int(time())}_{description}.h5')
+    data_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        '../../models/model_{int(time())}_{description}.h5'
+    )
+    model.save(data_path)
