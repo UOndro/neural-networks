@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from sklearn import preprocessing
 from tensorflow import keras
 
 
@@ -22,6 +23,13 @@ df_ratings = pd.read_csv('../data/raw/ratings.dat', sep='::', encoding="ISO-8859
 df_ratings['timestamp'] = pd.to_datetime(df_ratings['timestamp'], unit='s')
 df_ratings.sort_values(by=['timestamp'], inplace=True)
 train, validate, test = np.split(df_ratings, [int(.6 * len(df_ratings)), int(.8 * len(df_ratings))])
+
+label_encoder = preprocessing.LabelEncoder()
+label_encoder.fit(df_ratings['movie_id'].unique())
+train['movie_id'] = label_encoder.transform(train['movie_id'])
+validate['movie_id'] = label_encoder.transform(validate['movie_id'])
+test['movie_id'] = label_encoder.transform(test['movie_id'])
+
 train_X, train_y = get_labeled_features(train)
 validation_X, validation_y = get_labeled_features(validate)
 test_X, test_y = get_labeled_features(test)
