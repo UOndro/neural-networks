@@ -1,10 +1,43 @@
 import numpy as np
 import pandas as pd
 from sklearn import preprocessing
+from sklearn.preprocessing import MultiLabelBinarizer
 from tensorflow import keras
 import os
 
 SEQUENCE_LENGTH = 51
+DATA_PATH = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    '../../data/raw/'
+)
+
+
+def load_movies():
+    df = pd.read_csv(os.path.join(DATA_PATH, 'movies.dat'), sep='::', encoding="ISO-8859-1",
+                     names=['movie_id', 'title', 'genres'])
+    df['genres'] = df['genres'].str.split('|')
+    return df
+
+
+def load_ratings():
+    df = pd.read_csv(os.path.join(DATA_PATH, 'ratings.dat'), sep='::', encoding="ISO-8859-1",
+                     names=['user_id', 'movie_id', 'rating', 'timestamp'])
+
+    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
+    df.sort_values(by=['timestamp'], inplace=True)
+    return df
+
+
+def make_movie_id_encoder(movie_ids):
+    encoder = preprocessing.LabelEncoder()
+    encoder.fit(movie_ids)
+    return encoder
+
+
+def make_genres_encoder(genres):
+    encoder = MultiLabelBinarizer()
+    encoder.fit(genres)
+    return encoder
 
 
 def get_labeled_features(df):
@@ -20,26 +53,22 @@ def get_labeled_features(df):
             if len(chunk) < SEQUENCE_LENGTH / 2:
                 y.append(chunk.pop())
                 X.append(chunk)
-    X = keras.preprocessing.sequence.pad_sequences(X, padding='post', maxlen=SEQUENCE_LENGTH-1)
+    X = keras.preprocessing.sequence.pad_sequences(X, padding='pre', maxlen=SEQUENCE_LENGTH - 1)
     return X, np.array(y)
 
 
-data_path = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)),
-    '../../data/raw/ratings.dat'
-)
-df_ratings = pd.read_csv(data_path, sep='::', encoding="ISO-8859-1",
-                         names=['user_id', 'movie_id', 'rating', 'timestamp'])
-df_ratings['timestamp'] = pd.to_datetime(df_ratings['timestamp'], unit='s')
-df_ratings.sort_values(by=['timestamp'], inplace=True)
-train, validate, test = np.split(df_ratings, [int(.6 * len(df_ratings)), int(.8 * len(df_ratings))])
+df_movies = load_movies()
+df_ratings = load_ratings()
 
-label_encoder = preprocessing.LabelEncoder()
-label_encoder.fit(df_ratings['movie_id'].unique())
-train['movie_id'] = label_encoder.transform(train['movie_id'])
-validate['movie_id'] = label_encoder.transform(validate['movie_id'])
-test['movie_id'] = label_encoder.transform(test['movie_id'])
+movie_id_encoder = make_movie_id_encoder(df_movies['movie_id'].unique())
+df_ratings['movie_id'] = movie_id_encoder.transform(df_ratings['movie_id'])
+df_movies['movie_id'] = movie_id_encoder.transform(df_movies['movie_id'])
+
+train, validate, test = np.split(df_ratings, [int(.6 * len(df_ratings)), int(.8 * len(df_ratings))])
 
 train_X, train_y = get_labeled_features(train)
 validation_X, validation_y = get_labeled_features(validate)
 test_X, test_y = get_labeled_features(test)
+
+genres_encoder = make_genres_encoder(df_movies['genres'])
+genres_encoding = genres_encoder.transform(df_movies['genres'])
