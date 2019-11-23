@@ -3,6 +3,8 @@ import pandas as pd
 from sklearn import preprocessing
 from tensorflow import keras
 
+SEQUENCE_LENGTH = 50
+
 
 def get_labeled_features(df):
     X = []
@@ -12,8 +14,11 @@ def get_labeled_features(df):
         sequence = group[group['rating'] > 2]['movie_id'].tolist()
         if not sequence:
             continue
-        y.append(sequence.pop())
-        X.append(sequence)
+        chunks = [sequence[x:x + SEQUENCE_LENGTH] for x in range(0, len(sequence), SEQUENCE_LENGTH)]
+        for chunk in chunks:
+            if len(chunk) < SEQUENCE_LENGTH / 2:
+                y.append(chunk.pop())
+                X.append(chunk)
     X = keras.preprocessing.sequence.pad_sequences(X, padding='post', maxlen=200)
     return X, np.array(y)
 
