@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn import preprocessing
 from tensorflow import keras
 
-SEQUENCE_LENGTH = 50
+SEQUENCE_LENGTH = 51
 
 
 def get_labeled_features(df):
@@ -19,7 +19,7 @@ def get_labeled_features(df):
             if len(chunk) < SEQUENCE_LENGTH / 2:
                 y.append(chunk.pop())
                 X.append(chunk)
-    X = keras.preprocessing.sequence.pad_sequences(X, padding='post', maxlen=200)
+    X = keras.preprocessing.sequence.pad_sequences(X, padding='post', maxlen=SEQUENCE_LENGTH-1)
     return X, np.array(y)
 
 

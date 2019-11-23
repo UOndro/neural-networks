@@ -9,7 +9,8 @@ from src.data.load_data import train_y, df_ratings
 class NextItemPredictor(Sequential):
     def __init__(self):
         super(NextItemPredictor, self).__init__()
-        self.add(Embedding(input_dim=len(np.unique(df_ratings['movie_id'])), output_dim=400, embeddings_initializer=initializers.Zeros()))
+        self.add(Embedding(input_dim=len(np.unique(df_ratings['movie_id'])), output_dim=400,
+                           embeddings_initializer=initializers.Zeros()))
         self.add(LSTM(1024))
         self.add(Dense(len(np.unique(df_ratings['movie_id'])), activation='softmax'))
 
