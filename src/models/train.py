@@ -14,6 +14,6 @@ def train(model, train_X, train_y, validation_X, validation_y, class_weight, epo
     )
     data_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
-        '../../models/model_{int(time())}_{description}.h5'
+        f'../../models/model_{int(time())}_{description}'
     )
-    model.save(data_path)
+    model.save(data_path, save_format='tf')

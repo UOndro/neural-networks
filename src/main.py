@@ -1,4 +1,3 @@
-import os
 from datetime import datetime
 from sklearn.utils import compute_class_weight
 from tensorflow import keras
@@ -9,11 +8,14 @@ from src.models.predict import predict_10
 from src.models.train import train
 import numpy as np
 
-logdir = "../../logs/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+logdir = "../logs/" + datetime.now().strftime("%Y%m%d-%H%M%S")
 tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
 
 model = NextItemPredictor()
-model.compile()
+model.compile(
+    optimizer=keras.optimizers.Adam(),
+    loss='sparse_categorical_crossentropy',
+)
 
 class_weight = compute_class_weight('balanced', np.unique(train_y), train_y)
 train(

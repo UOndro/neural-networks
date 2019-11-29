@@ -40,8 +40,9 @@ def make_genres_encoder(genres):
     return encoder
 
 
-def get_labeled_features(df):
-    X = []
+def get_labeled_features(df, genres_encoding):
+    X1 = []
+    X2 = []
     y = []
     for _, group in df.groupby(['user_id']):
         # DATASET should be sorted !!!!!
@@ -50,11 +51,13 @@ def get_labeled_features(df):
             continue
         chunks = [sequence[x:x + SEQUENCE_LENGTH] for x in range(0, len(sequence), SEQUENCE_LENGTH)]
         for chunk in chunks:
-            if len(chunk) < SEQUENCE_LENGTH / 2:
+            if len(chunk) > SEQUENCE_LENGTH / 2:
                 y.append(chunk.pop())
-                X.append(chunk)
-    X = keras.preprocessing.sequence.pad_sequences(X, padding='pre', maxlen=SEQUENCE_LENGTH - 1)
-    return X, np.array(y)
+                X1.append(chunk)
+                X2.append([genres_encoding[movie_id] for movie_id in chunk])
+    X1 = keras.preprocessing.sequence.pad_sequences(X1, padding='pre', maxlen=SEQUENCE_LENGTH - 1)
+    X2 = keras.preprocessing.sequence.pad_sequences(X2, padding='pre', maxlen=SEQUENCE_LENGTH - 1)
+    return [X1, X2], np.array(y)
 
 
 df_movies = load_movies()
@@ -64,11 +67,11 @@ movie_id_encoder = make_movie_id_encoder(df_movies['movie_id'].unique())
 df_ratings['movie_id'] = movie_id_encoder.transform(df_ratings['movie_id'])
 df_movies['movie_id'] = movie_id_encoder.transform(df_movies['movie_id'])
 
-train, validate, test = np.split(df_ratings, [int(.6 * len(df_ratings)), int(.8 * len(df_ratings))])
-
-train_X, train_y = get_labeled_features(train)
-validation_X, validation_y = get_labeled_features(validate)
-test_X, test_y = get_labeled_features(test)
-
 genres_encoder = make_genres_encoder(df_movies['genres'])
 genres_encoding = genres_encoder.transform(df_movies['genres'])
+
+train, validate, test = np.split(df_ratings, [int(.6 * len(df_ratings)), int(.8 * len(df_ratings))])
+
+train_X, train_y = get_labeled_features(train, genres_encoding)
+validation_X, validation_y = get_labeled_features(validate, genres_encoding)
+test_X, test_y = get_labeled_features(test, genres_encoding)
