@@ -5,7 +5,7 @@ from sklearn.preprocessing import MultiLabelBinarizer
 from tensorflow import keras
 import os
 
-SEQUENCE_LENGTH = 51
+SEQUENCE_LENGTH = 11
 DATA_PATH = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
     '../../data/raw/'

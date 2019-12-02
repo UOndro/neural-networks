@@ -6,10 +6,10 @@ from src.data.load_data import df_movies
 
 
 class NextItemPredictor(Model):
-    def __init__(self):
+    def __init__(self, size_lstm=124, emb_out=400):
         super(NextItemPredictor, self).__init__()
-        self.emb = Embedding(input_dim=len(df_movies['movie_id']), output_dim=400)
-        self.lstm = LSTM(16)
+        self.emb = Embedding(input_dim=len(df_movies['movie_id']), output_dim=emb_out, mask_zero=True)
+        self.lstm = LSTM(size_lstm, activation='sigmoid')
         self.out = Dense(len(df_movies['movie_id']), activation='softmax')
 
     def call(self, x):
