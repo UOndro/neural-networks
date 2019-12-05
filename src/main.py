@@ -17,9 +17,9 @@ os.mkdir(logdir)
 logging.basicConfig(filename='{}/metric_logs'.format(logdir), level=logging.DEBUG)
 # %%
 batch_size = 64
-epochs = 256
-lstm_size = 64
-emb_size = 50
+epochs = 32
+lstm_size = 256
+emb_size = 200
 logging.info('Batch {}. Epochs {} LSTM {}'.format(batch_size, epochs, lstm_size, emb_size))
 # %%
 model = NextItemPredictor(lstm_size, emb_size)
@@ -29,6 +29,7 @@ model.compile(
 )
 # %%
 class_weight = compute_class_weight('balanced', np.unique(train_y), train_y)
+es = keras.callbacks.EarlyStopping(monitor='val_loss', mode='min', verbose=1)
 train(
     model,
     train_X=train_X,
@@ -38,7 +39,7 @@ train(
     class_weight=class_weight,
     batch_size=batch_size,
     epochs=epochs,
-    callbacks=[tensorboard_callback],
+    callbacks=[es, tensorboard_callback],
     description='batch{}-epochs{}-lstm{}'.format(batch_size, epochs, lstm_size)
 )
 # %%
@@ -47,3 +48,5 @@ y_pred = predict_10(model, test_X)
 sps(test_y, y_pred)
 # %%
 item_coverage(test_y, y_pred)
+
+
